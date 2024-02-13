@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Chat App</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/lib/languages/python.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+
+  <style>
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+      background-color: rgb(19 19 22 / 1);
+      margin: 0;
+      padding: 0;
+    }
+    
+    .chat-box {
+      height: 350px;
+      overflow: auto;
+     padding: 10px;
+    }
+
+    
+    textarea.form-control {
+      height: 40px; /* or any other fixed height you prefer */
+    }
+    
+    .chat-container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    p{
+      padding-top: 0.5rem;
+      padding-left: 10px;
+      margin: auto !important;
+    }
+    
+    .chat-message {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-message {
+      background-color:#272a2b;
+      color: #fff;
+      font-size: 20px;
+      border-radius: 1.5rem !important;      
+    }
+
+ 
+    
+    .bot-message {
+      background-color: #484848;
+      color: white;
+      font-size: 20px;
+    }
+    
+    .message-text pre code {
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+    
+    .user-icon {
+      font-size: 20px;
+      margin: auto;
+      margin-left: 10px;
+      border-radius: 50%;
+      width: 50px;
+      height: 5
+      0px;
+    }
+    
+    .bot-icon {
+      font-size: 20px;
+      margin-right: 10px;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container mt-5">
+
+
+    <h1 style="color: transparent;
+    background-image: linear-gradient(90deg, #00cdfa -20.67%, #9058ff 42.73%, #ff76df 105.77%);
+    -webkit-background-clip: text; 
+    background-clip: text;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;">
+Chat Bot
+</h1>
+
+
+
+    <div class="chat-box mt-3">
+      <!-- Chat messages will be added here dynamically -->
+    </div>
+    <div class="form-group mt-3 d-flex">
+      <textarea class="form-control" rows="3" placeholder="Type your message here" id="message-input"></textarea>
+      <button type="button" class="btn btn-primary ml-2" id="send-btn">Send</button>
+    </div>
+  </div>
+  <script>
+    setInterval(highlightAll, 1000);
+    
+    // Function to highlight code using highlight.js library
+    function highlightAll() {
+      document.querySelectorAll("pre code").forEach(block => {
+        hljs.highlightBlock(block);
+      });
+    }
+    
+    const chatBox = document.querySelector(".chat-box");
+    const messageInput = document.querySelector("#message-input");
+    const sendBtn = document.querySelector("#send-btn");
+   
+    function addMessage(message, isUserMessage) {
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("mt-3", "p-3", "rounded");
+      
+      if (isUserMessage) {
+        messageDiv.classList.add("user-message");
+      } else {
+        messageDiv.classList.add("bot-message");
+      }
+      
+      messageDiv.innerHTML = `<img src="{{ url_for('static', filename='images/user.png') }}" class="user-icon"><p>${message}</p>`;
+      chatBox.appendChild(messageDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    
+    function sendMessage() {
+      const message = messageInput.value.trim();
+      
+      if (message !== "") {
+        addMessage(message, true);
+        
+        fetch("/api", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message })
+        })
+          .then(response => response.json())
+          .then(data => {
+            messageInput.value = "";
+            const answer = data.answer;
+            addMessage(answer, false);
+          })
+          .catch(error => console.error(error));
+      }
+    }
+    
+    sendBtn.addEventListener("click", sendMessage);
+    messageInput.addEventListener("keydown", event => {
+      if (event.keyCode === 13 && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+</script>
+
+</body>
+
+</html>
